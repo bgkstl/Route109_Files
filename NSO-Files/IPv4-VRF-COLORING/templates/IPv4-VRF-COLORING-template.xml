@@ -1,0 +1,49 @@
+<config-template
+  xmlns="http://tail-f.com/ns/config/1.0"
+                 servicepoint="IPv4-VRF-COLORING">
+  <devices
+    xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <!--
+          Select the devices from some data structure in the service
+          model. In this skeleton the devices are specified in a leaf-list.
+          Select all devices in that leaf-list:
+      -->
+      <name>{/device}</name>
+      <config>
+        <?if-ned-id cisco-iosxr-cli-7.49:cisco-iosxr-cli-7.49?>
+        <route-policy
+          xmlns="http://tail-f.com/ned/cisco-ios-xr">
+          <name>RP-COL-{/colornum}</name>
+          <value>set extcommunity color COLOR-{/colornum}</value>
+        </route-policy>
+        <extcommunity-set
+          xmlns="http://tail-f.com/ned/cisco-ios-xr">
+          <opaque>
+            <name>COLOR-{/colornum}</name>
+            <set>
+              <value>{/colornum}</value>
+            </set>
+          </opaque>
+        </extcommunity-set>
+        <vrf
+          xmlns="http://tail-f.com/ned/cisco-ios-xr">
+          <vrf-list>
+            <name>{/VRFname}</name>
+            <address-family>
+              <ipv4>
+                <unicast>
+                  <export>
+                    <route-policy>RP-COL-{/colornum}</route-policy>
+                  </export>
+                </unicast>
+              </ipv4>
+            </address-family>
+          </vrf-list>
+        </vrf>
+        <?elif-ned-id cisco-iosxr-cli-3.5:cisco-iosxr-cli-3.5?>
+        <?end?>
+      </config>
+    </device>
+  </devices>
+</config-template>

@@ -1,0 +1,46 @@
+module IPv4-VRF-Deploy {
+  namespace "http://com/example/IPv4VRFDeploy";
+  prefix IPv4-VRF-Deploy;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list IPv4-VRF-Deploy {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "IPv4-VRF-Deploy";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf VRFname {
+      type string;
+    }
+
+    leaf VRFdescription {
+      type string;
+    }
+
+    leaf IMPORTrt {
+      type string;
+    }
+
+    leaf EXPORTrt {
+      type string;
+    }
+  }
+}

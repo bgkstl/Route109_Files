@@ -1,0 +1,50 @@
+module VPNv4-PEER-CONFIG {
+  namespace "http://com/example/VPNv4PEERCONFIG";
+  prefix VPNv4-PEER-CONFIG;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list VPNv4-PEER-CONFIG {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "VPNv4-PEER-CONFIG";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf VRFname {
+      type string;
+    }
+        leaf NeighborIP {
+      type string;
+    }
+        leaf NeighborAS {
+      type string;
+    }
+        leaf AppliedRPLin {
+      type string;
+    }
+        leaf AppliedRPLout {
+      type string;
+    }
+        leaf rd {
+      type string;
+    }
+
+  }
+}

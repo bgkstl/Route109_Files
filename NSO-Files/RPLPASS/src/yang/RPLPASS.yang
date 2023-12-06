@@ -1,0 +1,34 @@
+module RPLPASS {
+  namespace "http://com/example/RPLPASS";
+  prefix RPLPASS;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list RPLPASS {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "RPLPASS";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf dummy {
+      type inet:ipv4-address;
+    }
+  }
+}

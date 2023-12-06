@@ -1,0 +1,56 @@
+module L2VPN {
+  namespace "http://com/example/L2VPN";
+  prefix L2VPN;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list L2VPN {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "L2VPN";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf GroupName {
+      type string;
+    }
+    leaf XCnum {
+      type string;
+    }
+    leaf IntNum {
+      type string;
+    }
+    leaf evi {
+      type string;
+    }
+    leaf target {
+      type string;
+    }
+    leaf source {
+      type string;
+    }
+    leaf pw-class {
+      type string;
+    }
+
+
+
+
+  }
+}

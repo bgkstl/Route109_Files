@@ -1,0 +1,34 @@
+module PCEP-TE-POL {
+  namespace "http://com/example/PCEPTEPOL";
+  prefix PCEP-TE-POL;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list PCEP-TE-POL {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "PCEP-TE-POL";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf colornum {
+      type string;
+    }
+  }
+}

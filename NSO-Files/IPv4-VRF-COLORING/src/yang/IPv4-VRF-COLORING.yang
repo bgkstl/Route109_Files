@@ -1,0 +1,38 @@
+module IPv4-VRF-COLORING {
+  namespace "http://com/example/IPv4VRFCOLORING";
+  prefix IPv4-VRF-COLORING;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  list IPv4-VRF-COLORING {
+    key name;
+
+    uses ncs:service-data;
+    ncs:servicepoint "IPv4-VRF-COLORING";
+
+    leaf name {
+      type string;
+    }
+
+    // may replace this with other ways of refering to the devices.
+    leaf-list device {
+      type leafref {
+        path "/ncs:devices/ncs:device/ncs:name";
+      }
+    }
+
+    // replace with your own stuff here
+    leaf VRFname {
+      type string;
+    }
+        leaf colornum {
+      type string;
+    }
+
+  }
+}

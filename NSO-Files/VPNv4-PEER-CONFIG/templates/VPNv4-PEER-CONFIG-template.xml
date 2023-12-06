@@ -1,0 +1,49 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0"
+                 servicepoint="VPNv4-PEER-CONFIG">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <!--
+          Select the devices from some data structure in the service
+          model. In this skeleton the devices are specified in a leaf-list.
+          Select all devices in that leaf-list:
+      -->
+      <name>{/device}</name>
+      <config>
+<router xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                     <bgp>
+                       <bgp-no-instance>
+                         <id>10200</id>
+                         <vrf>
+                           <name>{/VRFname}</name>
+                           <address-family>
+                             <ipv4>
+                               <unicast/>
+                             </ipv4>
+                           </address-family>
+ 		          <rd>{/rd}</rd>
+                           <neighbor>
+                             <id>{/NeighborIP}</id>
+                             <remote-as>{NeighborAS}</remote-as>
+                             <address-family>
+                               <ipv4>
+                                 <unicast>
+                                   <route-policy>
+                                     <direction>in</direction>
+                                     <name>{/AppliedRPLin}</name>
+                                   </route-policy>
+                                   <route-policy>
+                                     <direction>out</direction>
+                                     <name>{/AppliedRPLout}</name>
+                                   </route-policy>
+                                 </unicast>
+                               </ipv4>
+                             </address-family>
+                           </neighbor>
+                         </vrf>
+                       </bgp-no-instance>
+                     </bgp>
+                   </router>
+      </config>
+    </device>
+  </devices>
+</config-template>

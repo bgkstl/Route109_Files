@@ -1,0 +1,30 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0"
+                 servicepoint="PCEP-TE-POL">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <!--
+          Select the devices from some data structure in the service
+          model. In this skeleton the devices are specified in a leaf-list.
+          Select all devices in that leaf-list:
+      -->
+      <name>{/device}</name>
+      <config>
+                   <segment-routing xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                     <traffic-eng>
+                       <on-demand>
+                         <color>
+                           <id>{/colornum}</id>
+                           <dynamic>
+                             <pcep/>
+                             <metric>
+                               <type>igp</type>
+                             </metric>
+                           </dynamic>
+                         </color>
+                       </on-demand>
+                     </traffic-eng>
+                   </segment-routing>
+      </config>
+    </device>
+  </devices>
+</config-template>

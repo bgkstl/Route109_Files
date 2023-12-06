@@ -1,0 +1,36 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0"
+                 servicepoint="IPv4-PEER-CONFIG">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{/device}</name>
+      <config>
+   <router xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                     <bgp>
+                       <bgp-no-instance>
+                         <id>10200</id>
+                         <neighbor>
+                           <id>{/NeighborIP}</id>
+                           <remote-as>{/NeighborAS}</remote-as>
+                           <description>{/PEERdescription}</description>
+                           <address-family>
+                             <ipv4>
+                               <unicast>
+                                 <route-policy>
+                                   <direction>in</direction>
+                                   <name>{/AppliedRPLin}</name>
+                                 </route-policy>
+                                 <route-policy>
+                                   <direction>out</direction>
+                                   <name>{/AppliedRPLout}</name>
+                                 </route-policy>
+                               </unicast>
+                             </ipv4>
+                           </address-family>
+                         </neighbor>
+                       </bgp-no-instance>
+                     </bgp>
+                   </router>
+      </config>
+    </device>
+  </devices>
+</config-template>
