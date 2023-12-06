@@ -1,0 +1,41 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Mon Nov 27 06:59:22 2023 by ispadmin
+!
+hostname 10200-P1
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$Ypvsv/xCySXj5v/.$v811yHtB3ipYiaDb5H/tm1UX9dBc57LKC8WTfbFWwXg9LSLjQUKQ/UZTui2L5pPzbsxB9PdfzEHcgBi8DvlaH.
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 1.1.1.1 255.255.255.255
+!
+interface Loopback75
+ ipv4 address 75.75.75.75 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ description MGMT
+ ipv4 address 172.16.254.101 255.255.255.0
+!
+interface preconfigure GigabitEthernet0/0/0/0
+ ipv4 address 10.2.1.1 255.255.255.0
+!
+interface preconfigure GigabitEthernet0/0/0/1
+ ipv4 address 10.3.1.1 255.255.255.0
+!
+interface preconfigure GigabitEthernet0/0/0/2
+ ipv4 address 10.4.1.1 255.255.255.0
+!
+interface preconfigure GigabitEthernet0/0/0/3
+ ipv4 address 10.11.1.1 255.255.255.0
+!
+interf

@@ -1,0 +1,258 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Tue Nov 28 12:50:07 2023 by ispadmin
+!
+hostname 10200-PE12
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$1V/FRMEI52p/R...$LXnOmf0Ll2pn.ppce7UrU7PjXuoBPidTUr9mqovXlodvWkjweW0mrulM.vajHWQ3DDf9piDXOxdKYAPuBpG310
+!
+vrf CX-COMMUNICORE
+ description Customer_CommunicoreCo
+ address-family ipv4 unicast
+  import route-target
+   10200:82
+  !
+  export route-policy RP-COL-820
+  export route-target
+   10200:82
+  !
+ !
+!
+address-family ipv4 unicast
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 12.12.12.12 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.16.254.112 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/1
+ shutdown
+!
+interface GigabitEthernet0/0/0/1.212
+ ipv4 address 10.40.12.12 255.255.255.0
+ encapsulation dot1q 212
+!
+interface GigabitEthernet0/0/0/2
+ description COMMUNICORE-TRUNK
+!
+interface GigabitEthernet0/0/0/2.80
+ ipv4 address 16.20.20.1 255.255.255.254
+ encapsulation dot1q 80
+!
+interface GigabitEthernet0/0/0/2.82
+ vrf CX-COMMUNICORE
+ ipv4 address 10.82.20.1 255.255.255.254
+ encapsulation dot1q 82
+!
+interface GigabitEthernet0/0/0/3
+ ipv4 address 10.12.4.12 255.255.255.0
+!
+interface GigabitEthernet0/0/0/4
+ shutdown
+!
+interface GigabitEthernet0/0/0/5
+ shutdown
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+extcommunity-set opaque COLOR9
+  9
+end-set
+!
+extcommunity-set opaque COLOR-820
+  820
+end-set
+!
+route-policy PASS
+  pass
+end-policy
+!
+route-policy RP-COL-820
+  set extcommunity color COLOR-820
+end-policy
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 172.16.254.1
+ !
+!
+router isis LAB
+ net 49.0000.0000.0000.0012.00
+ distribute link-state instance-id 200 level 2
+ address-family ipv4 unicast
+  metric-style wide
+  advertise passive-only
+  mpls traffic-eng level-2-only
+  mpls traffic-eng router-id Loopback0
+  router-id 12.12.12.12
+  segment-routing mpls sr-prefer
+ !
+ interface Loopback0
+  passive
+  circuit-type level-2-only
+  address-family ipv4 unicast
+   prefix-sid index 12
+  !
+ !
+ interface GigabitEthernet0/0/0/3
+  circuit-type level-2-only
+  point-to-point
+  address-family ipv4 unicast
+  !
+ !
+!
+router ospf 40
+ distribute link-state instance-id 40
+ segment-routing mpls
+ segment-routing forwarding mpls
+ prefix-suppression
+ segment-routing sr-prefer
+ area 0
+  interface Loopback0
+   prefix-sid index 12
+  !
+  interface GigabitEthernet0/0/0/1.212
+   network point-to-point
+  !
+ !
+!
+router bgp 10200
+ bgp cluster-id 12.12.12.12
+ bgp graceful-restart
+ ibgp policy out enforce-modifications
+ address-family ipv4 unicast
+  additional-paths receive
+  maximum-paths ibgp 6
+  as-path-loopcheck out disable
+  network 12.12.12.12/32
+ !
+ address-family vpnv4 unicast
+ !
+ address-family l2vpn evpn
+ !
+ address-family link-state link-state
+ !
+ address-family ipv4 flowspec
+ !
+ session-group SES-iBGP-RR
+  remote-as 10200
+  description 10200-DEF-iBGP
+  update-source Loopback0
+  graceful-restart
+ !
+ neighbor-group NBGRP-10200-PE
+  remote-as 10200
+  password encrypted 063026127C1C594B56
+  graceful-restart
+  address-family ipv4 unicast
+   next-hop-self
+  !
+  address-family vpnv4 unicast
+   next-hop-self
+  !
+  address-family l2vpn evpn
+   next-hop-self
+  !
+  address-family link-state link-state
+  !
+  address-family ipv4 flowspec
+   next-hop-self
+  !
+ !
+ neighbor 10.40.4.4
+  remote-as 10200
+  update-source Loopback0
+  address-family ipv4 unicast
+   route-reflector-client
+   next-hop-self
+  !
+ !
+ neighbor 16.20.20.0
+  remote-as 1082
+  description Communicore IPv4
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor 10.65.100.103
+  remote-as 65500
+  ebgp-multihop 6
+  password encrypted 097A673A2957474058
+  update-source Loopback0
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor 100.100.100.100
+  remote-as 10200
+  password encrypted 097A673A2957474058
+  update-source Loopback0
+  address-family ipv4 unicast
+   route-reflector-client
+   next-hop-self
+  !
+  address-family vpnv4 unicast
+   next-hop-self
+  !
+  address-family link-state link-state
+   route-reflector-client
+  !
+ !
+ vrf CX-COMMUNICORE
+  rd 20:82
+  address-family ipv4 unicast
+   as-path-loopcheck out disable
+  !
+  neighbor 10.82.20.0
+   remote-as 1082
+   address-family ipv4 unicast
+    route-policy PASS in
+    route-policy PASS out
+   !
+  !
+ !
+!
+mpls traffic-eng
+!
+segment-routing
+ global-block 16000 23999
+ traffic-eng
+  on-demand color 820
+   dynamic
+    pcep
+    !
+    metric
+     type igp
+    !
+   !
+  !
+  affinity-map
+   name TOP bit-position 2
+  !
+  pcc
+   source-address ipv4 12.12.12.12
+   pce address ipv4 111.111.111.111
+    precedence 100
+   !
+  !
+ !
+!
+ssh server v2
+end

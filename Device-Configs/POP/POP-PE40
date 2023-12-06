@@ -1,0 +1,283 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Sat Dec  2 13:02:42 2023 by ispadmin
+!
+hostname POP40-XR4
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$8HvdP/oSuKbi3P/.$PuIuao6RXyLNXMS4AX9fJad708qEAlfuUZmtJ1hB3uzpa.Hq4bmWCGe/Grpus2czXkUhbwhGGPGVIKlJqyZC0.
+!
+vrf CXw-24
+ address-family ipv4 unicast
+  import route-target
+   10200:24
+  !
+  export route-policy C700
+  export route-target
+   10200:24
+  !
+ !
+!
+vrf CX-COMMUNICORE
+ description Customer_CommunicoreCo
+ address-family ipv4 unicast
+  import route-target
+   10200:82
+  !
+  export route-policy RP-COL-820
+  export route-target
+   10200:82
+  !
+ !
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 10.40.4.4 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.16.254.129 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/1
+ description TRUNK
+!
+interface GigabitEthernet0/0/0/1.24
+ vrf CXw-24
+ ipv4 address 192.168.44.1 255.255.255.254
+ encapsulation dot1q 24
+!
+interface GigabitEthernet0/0/0/1.77 l2transport
+ encapsulation dot1q 77
+!
+interface GigabitEthernet0/0/0/1.80
+ ipv4 address 16.20.31.1 255.255.255.254
+ encapsulation dot1q 80
+!
+interface GigabitEthernet0/0/0/1.82
+ vrf CX-COMMUNICORE
+ ipv4 address 10.82.31.1 255.255.255.254
+ encapsulation dot1q 82
+!
+interface GigabitEthernet0/0/0/1.99 l2transport
+ encapsulation dot1q 99
+!
+interface GigabitEthernet0/0/0/1.200 l2transport
+ encapsulation dot1q 200
+!
+interface GigabitEthernet0/0/0/2
+ ipv4 address 10.4.3.4 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ ipv4 address 10.4.2.4 255.255.255.0
+!
+interface GigabitEthernet0/0/0/4
+ ipv4 address 10.4.1.4 255.255.255.0
+!
+interface GigabitEthernet0/0/0/5
+ shutdown
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+extcommunity-set opaque COLOR-8
+  8
+end-set
+!
+extcommunity-set opaque EVPN-74
+  74
+end-set
+!
+extcommunity-set opaque COLOR-820
+  820
+end-set
+!
+extcommunity-set opaque COLOR_700
+  700
+end-set
+!
+route-policy C700
+  set extcommunity color COLOR_700
+end-policy
+!
+route-policy PASS
+  pass
+end-policy
+!
+route-policy EVPN-COL-8
+  set extcommunity color COLOR-8
+end-policy
+!
+route-policy RP-COL-820
+  set extcommunity color COLOR-820
+end-policy
+!
+route-policy EVPN-DYNAMIC
+  if evpn-route-type is 1 then
+    set extcommunity color EVPN-74
+  endif
+end-policy
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 172.16.254.1
+ !
+!
+router ospf 40
+ distribute link-state instance-id 40
+ router-id 10.40.4.4
+ segment-routing mpls
+ segment-routing sr-prefer
+ area 0
+  prefix-suppression
+  mpls traffic-eng
+  segment-routing mpls
+  interface Loopback0
+   prefix-sid index 44
+  !
+  interface GigabitEthernet0/0/0/1
+  !
+  interface GigabitEthernet0/0/0/2
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/3
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/4
+   network point-to-point
+  !
+ !
+!
+router bgp 10200
+ address-family ipv4 unicast
+  as-path-loopcheck out disable
+  network 10.40.4.4/32
+ !
+ address-family vpnv4 unicast
+ !
+ address-family l2vpn evpn
+ !
+ neighbor 16.20.31.0
+  remote-as 1082
+  description COMMUNICORE-DC1
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor 11.11.11.11
+  remote-as 10200
+  update-source Loopback0
+  address-family ipv4 unicast
+   next-hop-self
+  !
+ !
+ neighbor 12.12.12.12
+  remote-as 10200
+  update-source Loopback0
+  address-family ipv4 unicast
+   next-hop-self
+  !
+ !
+ neighbor 100.100.100.100
+  remote-as 10200
+  update-source Loopback0
+  address-family vpnv4 unicast
+   next-hop-self
+  !
+  address-family l2vpn evpn
+   next-hop-self
+  !
+ !
+ vrf CXw-24
+  rd 404:24
+  address-family ipv4 unicast
+  !
+  neighbor 192.168.44.0
+   remote-as 80
+   address-family ipv4 unicast
+    route-policy PASS in
+    route-policy PASS out
+   !
+  !
+ !
+ vrf CX-COMMUNICORE
+  rd 4:82
+  address-family ipv4 unicast
+   as-path-loopcheck out disable
+  !
+  neighbor 10.82.31.0
+   remote-as 1082
+   address-family ipv4 unicast
+    route-policy PASS in
+    route-policy PASS out
+   !
+  !
+ !
+!
+evpn
+ ethernet-segment
+  type 1 auto-generation-disable
+ !
+ evi 1001
+  bgp
+   route-policy export EVPN-DYNAMIC
+   route-policy import EVPN-DYNAMIC
+  !
+ !
+ evi 1082
+  bgp
+   route-policy export EVPN-COL-8
+  !
+ !
+!
+l2vpn
+ pw-class MP
+  encapsulation mpls
+   preferred-path sr-te policy srte_c_74_ep_20.20.20.20
+  !
+ !
+ pw-class ONE
+  encapsulation mpls
+   preferred-path sr-te policy srte_c_77_ep_20.20.20.20
+  !
+ !
+ xconnect group 4_2_11
+  p2p 4211
+   interface GigabitEthernet0/0/0/1.200
+   neighbor evpn evi 1082 target 1182 source 482
+    pw-class MP
+   !
+  !
+ !
+ xconnect group 4_2_20
+  p2p xc224
+   interface GigabitEthernet0/0/0/1.77
+   neighbor evpn evi 1001 target 20001 source 10001
+    pw-class MP
+   !
+  !
+ !
+ xconnect group 99_4_2_20
+  p2p xc99
+   interface GigabitEthernet0/0/0/1.99
+   neighbor evpn evi 2000 target 20 source 40
+    pw-class ONE
+   !
+  !
+ !
+!
+mpls traffic-eng
+!
+segment-routing
+ global-block 16000 23999
+ traf

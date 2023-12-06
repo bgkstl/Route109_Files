@@ -1,0 +1,49 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Tue Nov 28 12:50:56 2023 by ispadmin
+!
+hostname 10200-PCE
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$JJeiI0Ze9ZuG7I0.$0YjUu4rRPCgB9bJiwdVqfeLKR10vEBbFYu4VJGpF7aiD1QsnUoKKuzrOfN5T8.YxCWNMZRbKL1IZZaT1SenBv0
+!
+pce
+ address ipv4 111.111.111.111
+ timers
+  reoptimization 600
+ !
+ peer ipv4 20.20.20.20
+ !
+ segment-routing
+  traffic-eng
+   segment-list name RED
+    index 1 mpls label 16006
+    index 2 mpls label 16003
+    index 3 mpls label 16004
+    index 4 mpls label 16012
+    index 5 mpls label 16042
+    index 6 mpls label 16044
+   !
+   segment-list name LOW_LAT_600
+    index 1 mpls label 16005
+    index 2 mpls label 16002
+    index 3 mpls label 16003
+    index 4 mpls label 16001
+    index 5 mpls label 16011
+   !
+   peer ipv4 10.40.3.3
+   !
+   peer ipv4 10.40.4.4
+   !
+   peer ipv4 11.11.11.11
+   !
+   peer ipv4 12.12.12.12
+   !
+   peer ipv4 20.20.20.20
+   !
+   peer ipv4 55.55.55.55
+   !
+   affinity bit-map
+    LL 9
+    TOP 2
+   !

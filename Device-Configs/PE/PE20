@@ -1,0 +1,367 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Sat Dec  2 13:02:30 2023 by ispadmin
+!
+hostname 10200-PE20
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$Qp6j2Bm9/wG2....$PxmJWlQ.1XhYGh5SQhbfvLjMh.lr0fM06AwFbV4KzJdUxEXg4Ssb1uJLUza9y89BhN.xM0w4IGqNdKi0Kij2T/
+!
+vrf VPN
+ address-family ipv4 unicast
+  import route-target
+   10200:100
+  !
+  export route-policy VPN-BE
+  export route-target
+   10200:100
+  !
+ !
+!
+vrf CXw-24
+ address-family ipv4 unicast
+  import route-target
+   10200:24
+  !
+  export route-policy VPN-LL
+  export route-target
+   10200:24
+  !
+ !
+!
+vrf CX-COMMUNICORE
+ description Customer_CommunicoreCo
+ address-family ipv4 unicast
+  import route-target
+   10200:82
+  !
+  export route-policy RP-COL-820
+  export route-target
+   10200:82
+  !
+ !
+!
+address-family ipv4 unicast
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 20.20.20.20 255.255.255.255
+!
+interface Loopback9
+ ipv4 address 9.9.9.9 255.255.255.255
+!
+interface Loopback24
+ vrf CXw-24
+ ipv4 address 24.24.24.24 255.255.255.255
+!
+interface Loopback100
+ vrf VPN
+ ipv4 address 192.168.100.20 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.16.254.120 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 10.20.5.20 255.255.255.0
+!
+interface GigabitEthernet0/0/0/1.20
+ vrf VPN
+ ipv4 address 192.168.220.1 255.255.255.0
+ encapsulation dot1q 20
+!
+interface GigabitEthernet0/0/0/1.24
+ vrf CXw-24
+ ipv4 address 192.168.224.1 255.255.255.254
+ encapsulation dot1q 24
+!
+interface GigabitEthernet0/0/0/1.77 l2transport
+ encapsulation dot1q 77
+!
+interface GigabitEthernet0/0/0/1.80
+ description COMMUNICORE-SITE1-iNET
+ ipv4 address 16.20.21.1 255.255.255.254
+ encapsulation dot1q 80
+!
+interface GigabitEthernet0/0/0/1.82
+ vrf CX-COMMUNICORE
+ ipv4 address 10.82.21.1 255.255.255.254
+ encapsulation dot1q 82
+!
+interface GigabitEthernet0/0/0/1.99 l2transport
+ encapsulation dot1q 99
+!
+interface GigabitEthernet0/0/0/1.800
+ encapsulation dot1q 800
+!
+interface GigabitEthernet0/0/0/2
+ ipv4 address 10.20.6.20 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ shutdown
+!
+interface GigabitEthernet0/0/0/4
+ shutdown
+!
+interface GigabitEthernet0/0/0/5
+ shutdown
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+rd-set 20:8000
+end-set
+!
+extcommunity-set rt L2VPNrt
+  10200:1001
+end-set
+!
+extcommunity-set opaque BE
+  500
+end-set
+!
+extcommunity-set opaque VPN-LL
+  600
+end-set
+!
+extcommunity-set opaque EVPN-74
+  74
+end-set
+!
+extcommunity-set opaque BSID-700
+  700
+end-set
+!
+extcommunity-set opaque COLOR-820
+  820
+end-set
+!
+rpl editor nano
+!
+route-policy PASS
+  pass
+end-policy
+!
+!
+route-policy VPN-BE
+  set extcommunity color BE
+end-policy
+!
+route-policy VPN-LL
+  set extcommunity color VPN-LL
+end-policy
+!
+route-policy NODESID
+  set label-index 20
+end-policy
+!
+route-policy NSO_RPL
+end-policy
+!
+route-policy COLOR-700
+  set extcommunity color BSID-700
+end-policy
+!
+route-policy RP-COL-820
+  set extcommunity color COLOR-820
+end-policy
+!
+route-policy EVPN-DYNAMIC
+  if evpn-route-type is 1 then
+    set extcommunity color EVPN-74
+  endif
+end-policy
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 172.16.254.1
+ !
+!
+router ospf 100
+ segment-routing mpls
+ segment-routing forwarding mpls
+ segment-routing sr-prefer
+ area 0
+  prefix-suppression
+  segment-routing mpls
+  interface Loopback0
+   prefix-sid index 20
+  !
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/2
+   cost 10
+   network point-to-point
+  !
+ !
+!
+router bgp 10200
+ bgp router-id 20.20.20.20
+ nexthop validation color-extcomm sr-policy
+ address-family ipv4 unicast
+  additional-paths receive
+  maximum-paths ibgp 6
+  as-path-loopcheck out disable
+  network 9.9.9.9/32
+  network 20.20.20.20/32
+ !
+ address-family vpnv4 unicast
+  retain route-target all
+ !
+ address-family l2vpn evpn
+ !
+ address-family link-state link-state
+ !
+ neighbor 2.2.2.2
+  remote-as 10200
+  update-source Loopback0
+  address-family ipv4 unicast
+   next-hop-self
+  !
+  address-family link-state link-state
+   next-hop-self
+  !
+ !
+ neighbor 3.3.3.3
+  remote-as 10200
+  update-source Loopback0
+  address-family ipv4 unicast
+   next-hop-self
+  !
+ !
+ neighbor 16.20.21.0
+  remote-as 1082
+  description COMMUNICORE-SITE1
+  address-family ipv4 unicast
+   route-policy PASS in
+   route-policy PASS out
+  !
+ !
+ neighbor 100.100.100.100
+  remote-as 10200
+  update-source Loopback0
+  address-family vpnv4 unicast
+   next-hop-self
+  !
+  address-family l2vpn evpn
+   next-hop-self
+  !
+ !
+ vrf VPN
+  rd 20:100
+  address-family ipv4 unicast
+   network 192.168.100.20/32
+   network 192.168.220.0/24
+  !
+ !
+ vrf CXw-24
+  rd 20:24
+  address-family ipv4 unicast
+   network 24.24.24.24/32
+  !
+  neighbor 192.168.224.0
+   remote-as 80
+   address-family ipv4 unicast
+    route-policy PASS in
+    route-policy PASS out
+    as-override
+   !
+  !
+ !
+ vrf CX-COMMUNICORE
+  rd 20:82
+  address-family ipv4 unicast
+   as-path-loopcheck out disable
+  !
+  neighbor 10.82.21.0
+   remote-as 1082
+   address-family ipv4 unicast
+    route-policy PASS in
+    route-policy PASS out
+   !
+  !
+ !
+!
+evpn
+ bgp
+ !
+ ethernet-segment
+  type 1 auto-generation-disable
+ !
+ evi 1001
+  bgp
+   route-policy export EVPN-DYNAMIC
+   route-policy import EVPN-DYNAMIC
+  !
+ !
+ evi 8000
+  bgp
+   rd 20:8000
+   route-target 10200:8000
+  !
+  advertise-mac
+  !
+ !
+!
+l2vpn
+ pw-class MP
+  encapsulation mpls
+   preferred-path sr-te policy srte_c_74_ep_10.40.4.4
+  !
+ !
+ pw-class ONE
+  encapsulation mpls
+  !
+ !
+ xconnect group 20_2_4
+  p2p xc224
+   interface GigabitEthernet0/0/0/1.77
+   neighbor evpn evi 1001 target 10001 source 20001
+    pw-class MP
+   !
+  !
+ !
+ xconnect group 99_20_2_40
+  p2p xc99
+   interface GigabitEthernet0/0/0/1.99
+   neighbor evpn evi 2000 target 40 source 20
+    pw-class ONE
+   !
+  !
+ !
+!
+mpls traffic-eng
+!
+segment-routing
+ global-block 16000 23999
+ traffic-eng
+  interface GigabitEthernet0/0/0/0
+   affinity
+    name RED
+   !
+  !
+  interface GigabitEthernet0/0/0/2
+   affinity
+    name RED
+   !
+  !
+  interface GigabitEthernet0/0/0/5
+   affinity
+    name LL-LINK
+   !
+  !
+  segment-list LIST-POL-1
+   index 1 mpls label 16006
+   index 2 mpls label 16005
+   index 3 mpls label 16002
+   index 4 mpls label 15009
+  !
+  segment-list PW-
