@@ -1,0 +1,46 @@
+!! IOS XR Configuration 7.7.2
+!! Last configuration change at Fri Nov 24 19:09:41 2023 by ispadmin
+!
+hostname DC-BORDER
+username ispadmin
+ group root-lr
+ group cisco-support
+ secret 10 $6$xQ0/r1bEkx2QDr1.$t3o8JklL.CUrG6IZer7S0aOtQSyLf41QH7pccuANDkQ2mPICqP4YRUvzVBRYL/bN2/liHM3qGBHhbB6ITjgU..
+!
+vrf CXw-24
+ address-family ipv4 unicast
+  import route-target
+   10200:24
+  !
+  export route-policy VPN-600
+  export route-target
+   10200:24
+  !
+ !
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ ipv4 address 55.55.55.55 255.255.255.255
+!
+interface MgmtEth0/RP0/CPU0/0
+ ipv4 address 172.16.254.130 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ description DC-TRUNK
+!
+interface GigabitEthernet0/0/0/0.179
+ ipv4 address 10.103.55.55 255.255.255.0
+ encapsulation dot1q 179
+!
+interface GigabitEthernet0/0/0/0.2000
+ vrf CXw-24
+ ipv4 address 172.16.200.1 255.255.255.254
+ encapsulation dot1
