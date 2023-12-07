@@ -1,0 +1,410 @@
+
+!Command: show running-config
+!Running configuration last done at: Wed Dec  6 19:06:59 2023
+!Time: Wed Dec  6 19:07:06 2023
+
+version 10.4(1) Bios:version  
+hostname 10200-DC-L103bgw
+install feature-set mpls
+vdc 10200-DC-L103bgw id 1
+  allow feature-set mpls
+  limit-resource vlan minimum 16 maximum 4094
+  limit-resource vrf minimum 2 maximum 4097
+  limit-resource port-channel minimum 0 maximum 511
+  limit-resource m4route-mem minimum 58 maximum 58
+  limit-resource m6route-mem minimum 8 maximum 8
+feature-set mpls
+
+nv overlay evpn
+feature ospf
+feature bgp
+feature pim
+feature isis
+feature fabric forwarding
+feature interface-vlan
+feature vn-segment-vlan-based
+feature mpls oam
+feature nv overlay
+
+username admin password 5 $5$IAOHFH$WRS8bk3bL9FHS7CP.FkQtsAs0wbLf/RAKchddDqKxFB  role network-admin
+ip domain-lookup
+copp profile strict
+ip ftp source-interface mgmt0
+snmp-server user admin network-admin auth md5 37735944ABCF58DEC08EC08DE6AD8C9DFFA3 priv aes-128 5314011A41118E143670283830655B01653A localizedV2key
+rmon event 1 log trap public description FATAL(1) owner PMON@FATAL
+rmon event 2 log trap public description CRITICAL(2) owner PMON@CRITICAL
+rmon event 3 log trap public description ERROR(3) owner PMON@ERROR
+rmon event 4 log trap public description WARNING(4) owner PMON@WARNING
+rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
+
+fabric forwarding anycast-gateway-mac aaaa.aaaa.aaaa
+ip pim ssm range 232.0.0.0/8
+vlan 1,10,30,65,100,179,999-1000,2000,2100,2200
+vlan 10
+  vn-segment 10
+vlan 30
+  name T01-VL30
+  vn-segment 30
+vlan 100
+  vn-segment 10010
+vlan 179
+  name EXT-BGP
+vlan 999
+  vn-segment 999
+vlan 1000
+  vn-segment 1000
+vlan 2000
+  name TEN-01-VNI
+  vn-segment 2000
+vlan 2100
+  vn-segment 2100
+vlan 2200
+  vn-segment 2200
+
+ip as-path access-list NO-TRANSIT seq 5 permit "^$"
+route-map Segment-Index permit 10
+  set label-index 65
+vrf context SERVER-VRF
+  vni 2100
+  rd auto
+  address-family ipv4 unicast
+    route-target both auto
+    route-target both auto evpn
+    route-target import 65500:2000
+    route-target import 65500:2000 evpn
+vrf context TEN-01
+  vni 2000
+  ip route 50.0.0.0/24 10.10.10.101
+  rd auto
+  address-family ipv4 unicast
+    route-target both auto
+    route-target both auto evpn
+    route-target import 65500:2100
+    route-target import 65500:2100 evpn
+vrf context management
+  ip route 0.0.0.0/0 172.16.254.1
+
+
+interface Vlan1
+
+interface Vlan10
+  no shutdown
+  vrf member TEN-01
+  ip address 10.10.10.1/24
+  fabric forwarding mode anycast-gateway
+
+interface Vlan30
+  no shutdown
+  vrf member TEN-01
+  ip address 10.30.30.1/24
+  fabric forwarding mode anycast-gateway
+
+interface Vlan65
+  no shutdown
+  ip address 65.65.65.1/24
+
+interface Vlan100
+  no shutdown
+  vrf member SERVER-VRF
+  ip address 10.100.0.100/24
+  fabric forwarding mode anycast-gateway
+
+interface Vlan200
+
+interface Vlan1000
+  description SHARED
+  no shutdown
+  vrf member SHARED
+  ip forward
+
+interface Vlan2000
+  description TEN-01 VNI
+  no shutdown
+  vrf member TEN-01
+  no ip redirects
+  ip forward
+
+interface Vlan2100
+  no shutdown
+  vrf member SERVER-VRF
+  ip forward
+
+interface Vlan2200
+  no shutdown
+  vrf member SHARED
+  ip address 10.220.220.1/24
+
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback192
+  global ingress-replication protocol bgp
+  member vni 10
+    ingress-replication protocol bgp
+  member vni 30
+    ingress-replication protocol bgp
+  member vni 2000 associate-vrf
+  member vni 2100 associate-vrf
+  member vni 2200
+  member vni 10010
+    ingress-replication protocol bgp
+
+interface Ethernet1/1
+  no switchport
+  medium p2p
+  ip unnumbered loopback0
+  ip router isis LAB
+  ip pim sparse-mode
+  mpls ip forwarding
+  no shutdown
+
+interface Ethernet1/2
+  no switchport
+  medium p2p
+  ip unnumbered loopback0
+  ip router isis LAB
+  ip pim sparse-mode
+  mpls ip forwarding
+  no shutdown
+
+interface Ethernet1/3
+  no switchport
+  medium p2p
+  ip unnumbered loopback0
+  ip ospf network point-to-point
+  ip router ospf 100 area 0.0.0.0
+  ip pim sparse-mode
+  no shutdown
+
+interface Ethernet1/4
+  no switchport
+  medium p2p
+  ip unnumbered loopback0
+  ip ospf network point-to-point
+  ip router ospf 100 area 0.0.0.0
+  no shutdown
+
+interface Ethernet1/5
+  switchport access vlan 65
+
+interface Ethernet1/6
+  description F5-INSIDE
+  switchport mode trunk
+  switchport trunk allowed vlan 1-64,66-4094
+
+interface Ethernet1/7
+  switchport access vlan 30
+
+interface Ethernet1/8
+  switchport access vlan 10
+
+interface Ethernet1/9
+  description ExternalPeering
+  no switchport
+  no shutdown
+
+interface Ethernet1/9.179
+  encapsulation dot1q 179
+  ip address 10.103.55.103/24
+  no shutdown
+
+interface Ethernet1/9.2000
+  encapsulation dot1q 2000
+  vrf member TEN-01
+  ip address 172.16.200.0/31
+  no shutdown
+
+interface Ethernet1/10
+
+interface Ethernet1/11
+
+interface Ethernet1/12
+
+interface Ethernet1/13
+
+interface Ethernet1/14
+
+interface Ethernet1/15
+
+interface Ethernet1/16
+
+interface Ethernet1/17
+
+interface Ethernet1/18
+
+interface Ethernet1/19
+
+interface Ethernet1/20
+
+interface Ethernet1/21
+
+interface Ethernet1/22
+
+interface Ethernet1/23
+
+interface Ethernet1/24
+
+interface Ethernet1/25
+
+interface Ethernet1/26
+
+interface Ethernet1/27
+
+interface Ethernet1/28
+
+interface Ethernet1/29
+
+interface Ethernet1/30
+
+interface Ethernet1/31
+
+interface Ethernet1/32
+
+interface Ethernet1/33
+
+interface Ethernet1/34
+
+interface Ethernet1/35
+
+interface Ethernet1/36
+
+interface Ethernet1/37
+
+interface Ethernet1/38
+
+interface Ethernet1/39
+
+interface Ethernet1/40
+
+interface Ethernet1/41
+
+interface Ethernet1/42
+
+interface Ethernet1/43
+
+interface Ethernet1/44
+
+interface Ethernet1/45
+
+interface Ethernet1/46
+
+interface Ethernet1/47
+
+interface Ethernet1/48
+
+interface Ethernet1/49
+
+interface Ethernet1/50
+
+interface Ethernet1/51
+
+interface Ethernet1/52
+
+interface Ethernet1/53
+
+interface Ethernet1/54
+
+interface Ethernet1/55
+
+interface Ethernet1/56
+
+interface Ethernet1/57
+
+interface Ethernet1/58
+
+interface Ethernet1/59
+
+interface Ethernet1/60
+
+interface Ethernet1/61
+
+interface Ethernet1/62
+
+interface Ethernet1/63
+
+interface Ethernet1/64
+
+interface mgmt0
+  vrf member management
+  ip address 172.16.254.117/24
+
+interface loopback0
+  ip address 10.65.100.103/32
+  ip router isis LAB
+  isis passive-interface level-2
+  ip pim sparse-mode
+
+interface loopback74
+  description BGP
+  ip address 10.74.0.103/32
+  ip router ospf 100 area 0.0.0.0
+  ip pim sparse-mode
+
+interface loopback192
+  ip address 192.168.1.103/32
+  ip router ospf 100 area 0.0.0.0
+  ip pim sparse-mode
+icam monitor scale
+
+cli alias name wr copy run s
+line console
+line vty
+boot nxos bootflash:/nxos64-cs.10.4.1.F.bin 
+router ospf 100
+router isis LAB
+  net 49.0000.0000.0000.0065.00
+  address-family ipv4 unicast
+    advertise passive-only level-2
+router bgp 65500
+  address-family ipv4 unicast
+    network 65.65.65.0/24
+  neighbor 10.74.0.201
+    remote-as 65500
+    update-source loopback74
+    address-family ipv4 unicast
+      send-community
+      send-community extended
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+  neighbor 10.74.0.202
+    remote-as 65500
+    update-source loopback74
+    address-family ipv4 unicast
+      send-community
+      send-community extended
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+  neighbor 10.103.55.55
+    remote-as 10200
+    address-family ipv4 unicast
+  neighbor 11.11.11.11
+    remote-as 10200
+    password 3 99834cf695e32907
+    shutdown
+    update-source loopback0
+    ebgp-multihop 4
+    address-family ipv4 unicast
+      filter-list NO-TRANSIT out
+  neighbor 12.12.12.12
+    remote-as 10200
+    password 3 99834cf695e32907
+    shutdown
+    update-source loopback0
+    ebgp-multihop 4
+    address-family ipv4 unicast
+      filter-list NO-TRANSIT out
+  vrf SERVER-VRF
+    address-family ipv4 unicast
+  vrf SHARED
+    address-family ipv4 unicast
+  vrf TEN-01
+    address-family ipv4 unicast
+    neighbor 172.16.200.1
+      remote-as 10200
+      address-family ipv4 unicast
+evpn
+
+
+
